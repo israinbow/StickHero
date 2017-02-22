@@ -1,0 +1,2 @@
+# StickHero
+Compatible with Firefox
