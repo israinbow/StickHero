@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<style type="text/css">
+		#score{
+			width:300px;
+			height:40px;
+			font:30px/40px "微软雅黑";
+			text-align:center;
+			background-color:#c0ebd7;
+			color:#fff;
+			position:fixed;
+		}
+		#box{
+			width:300px;
+			height:500px;
+			border:1px solid #ccc;
+			margin:30px auto;
+			overflow:hidden;
+		}
+		#gameContent{
+			width:600px;      /*实际运动的宽度*/
+			height:500px;
+			background-color:#eee;
+			position:relative;
+			left:0px;
+		}
+		#leftDiv{
+			width:80px;
+			height:200px;
+			background-color:#000;
+			position:absolute;
+			bottom:0px;    
+		}
+		#middleDiv{
+			width:80px;
+			height:200px;
+			background-color:#000;
+			position:absolute;
+			bottom:0px;  
+			left:200px;  
+		}
+		#rightDiv{
+			width:80px;
+			height:200px;
+			background-color:#000;
+			position:absolute;
+			bottom:0px; 
+			left:400px;     
+		}
+		#hero{
+			width:30px;
+			height:50px;
+			background:url(010-Lancer02.png) no-repeat 0px -95px;
+			position:absolute;
+			left:0px;
+			bottom:200px;
+		}
+		#stick{
+			width:0px;
+			height:6px;
+			background-color:#CD853F;
+			position:absolute;
+			left:40px;
+			bottom:200px;
+			-moz-transform:rotate(-90deg);      /*让棍子竖起来*/
+			-moz-transform-origin:0px 6px;      /*改变旋转基点坐标为左上角  x,y*/
+			-moz-transition:all 0.5s;
+		}
+	</style>
+</head>
+<body>
+	
+	<div id="box">
+		<div id="gameContent">
+			<div id="score">0</div>
+			<div id="leftDiv"></div>
+			<div id="middleDiv"></div>
+			<div id="rightDiv"></div>
+			<div id="hero"></div>
+			<div id="stick"></div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		var leftDiv=document.getElementById('leftDiv');
+		var middleDiv=document.getElementById("middleDiv");
+		var rightDiv=document.getElementById("rightDiv");
+		var hero=document.getElementById("hero");
+		var stick=document.getElementById('stick');
+		var gameContent=document.getElementById("gameContent");
+
+		middleDiv.style.width=createNum(30,60)+"px";
+		middleDiv.style.left=createNum(80,210)+"px";
+
+		var timer;
+		var num=0;
+		var temp=0;
+		var score=0;
+	
+		var gameover=false;
+
+		//生成棍子的长度
+		gameContent.onmousedown=function(){
+			timer=setInterval(function(){
+				num+=5;
+				stick.style.width=num+"px";
+			},100);
+		}
+
+		gameContent.onmouseup=function(){
+			clearInterval(timer);
+			
+			//生成rightDiv,屏幕背景要移动
+			rightDiv.style.width=createNum(30,60)+"px";     //确保middle和rightDiv在同一个屏幕
+			rightDiv.style.left=createNum(300,220+middleDiv.offsetLeft)+"px";
+
+			stick.style.transition="0.5s";
+			//使得棍子倒下去
+			stick.style.transform="rotate(0deg)";
+
+			//判断游戏继续还是失败
+			//棍子的长度加上hero小于middleDiv距左的距离
+			if(num+40<middleDiv.offsetLeft || num+40>middleDiv.offsetLeft+middleDiv.offsetWidth){
+				gameover=true;
+			}
+		}
+
+		//过渡完成,自动触发
+		stick.addEventListener("transitionend",function(){
+			if(gameover){
+				alert("游戏失败");
+			}else{
+				hero.style.transition="1s";
+				hero.style.left=middleDiv.offsetLeft +"px";	
+			}
+		});
+
+		hero.addEventListener("transitionend",function(ev){
+			gameContent.style.transition="1s";
+			gameContent.style.left=-middleDiv.offsetLeft +"px";
+			temp=1;
+
+			//判断游戏得分
+			if(middleDiv.offsetLeft<155 && middleDiv.offsetWidth>50){
+				score+=50;
+			}else if((middleDiv.offsetLeft<155 && middleDiv.offsetWidth<50) || (middleDiv.offsetLeft>155 && middleDiv.offsetWidth>50 )){
+				score+=100;
+			}else if(middleDiv.offsetLeft>155 && middleDiv.offsetWidth<50){
+				score+=200;
+			}
+			document.getElementById("score").innerHTML=score;
+
+			ev.stopPropagation();    //阻止事件冒泡
+		});
+
+		//棍子重置
+		gameContent.addEventListener("transitionend",function(){
+			if(temp==1){
+				gameContent.style.transition="none";
+				gameContent.style.left=0;
+
+				//清除过渡
+				hero.style.transition="none";
+				hero.style.left=0;
+
+				//清除过渡
+				stick.style.transition="none";
+				stick.style.width=0;
+				stick.style.transform="rotate(-90deg)";
+
+				leftDiv.style.width=middleDiv.offsetWidth+"px";
+
+				middleDiv.style.width=rightDiv.offsetWidth+"px";
+				middleDiv.style.left=rightDiv.offsetLeft - middleDiv.offsetLeft +"px";
+
+				num=0;
+				temp=0;
+			}
+			
+		});
+
+		//创建随机数
+		function createNum(x,y){
+			return parseInt( Math.random()*(y-x)+x );
+		}
+	</script>
+</body>
+</html>
